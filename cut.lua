@@ -1,9 +1,9 @@
 -- USER CONFIGURATION
 
-local GLOBAL_DIR = "~/Desktop/CUTS"
+local GLOBAL_DIR = "~/Desktop"
 
-local CUT_LIST_FILENAME = "cut_list.txt"
-local GENERATE_LIST_ON_CUT = true
+local GENERATE_LIST_ON_INPUT_DIR_CUT = true
+local GENERATE_LIST_ON_GLOBAL_DIR_CUT = false
 
 local ENCODE_CRF = 16
 local ENCODE_PRESET = "superfast"
@@ -30,6 +30,8 @@ local function cut(location, action, start_time, end_time)
 
 	local input_path = mp.get_property("path")
 	local input_dir = utils.split_path(input_path)
+	local filename_noext = mp.get_property("filename/no-ext")
+	local ext = mp.get_property("filename"):match("^.+(%..+)$") or ""
 	local cut_output_dir = mp.command_native({"expand-path", GLOBAL_DIR})
 	local list_output_dir = cut_output_dir
 
@@ -38,27 +40,25 @@ local function cut(location, action, start_time, end_time)
 		list_output_dir = input_dir
 	end
 
-	if action == "copy" or action == "encode" then
-		mp.commandv("run", "mkdir", "-p", cut_output_dir)
-	end
-
-	if action == "list" or GENERATE_LIST_ON_CUT then
-		mp.commandv("run", "mkdir", "-p", list_output_dir)
-	end
-
 	local prefix = action == "encode" and "ENCODE_" or "COPY_"
-	local output_filename = prefix .. mp.get_property("filename/no-ext") .. "_FROM_" .. start_time .. "_TO_" .. end_time .. ".mkv"
+	local output_filename = prefix .. filename_noext .. "_FROM_" .. start_time .. "_TO_" .. end_time .. ext
 	local cut_output_path = utils.join_path(cut_output_dir, output_filename)
-	local list_output_path = utils.join_path(list_output_dir, CUT_LIST_FILENAME)
+	local list_output_path = utils.join_path(list_output_dir, filename_noext .. ".txt")
 
 	mp.msg.info("ACTION: " .. action)
 	mp.msg.info("LOCATION: " .. location)
 	mp.msg.info("INPUT PATH: " .. input_path)
 	mp.msg.info("INPUT DIR: " .. input_dir)
+	mp.msg.info("FILENAME: " .. filename_noext)
+	mp.msg.info("EXT: " .. ext)
 	mp.msg.info("CUT OUTPUT DIR: " .. cut_output_dir)
 	mp.msg.info("CUT OUTPUT PATH: " .. cut_output_path)
 	mp.msg.info("LIST OUTPUT DIR: " .. list_output_dir)
 	mp.msg.info("LIST OUTPUT PATH: " .. list_output_path)
+
+	if action == "copy" or action == "encode" then
+		mp.commandv("run", "mkdir", "-p", cut_output_dir)
+	end
 
 	if action == "copy" then
 		mp.commandv(
@@ -67,6 +67,7 @@ local function cut(location, action, start_time, end_time)
 			"-ss", start_time,
 			"-to", end_time,
 			"-i", input_path,
+			"-pix_fmt", "yuv420p",
 			"-c", "copy",
 			"-avoid_negative_ts", "make_zero",
 			cut_output_path
@@ -78,12 +79,24 @@ local function cut(location, action, start_time, end_time)
 			"-ss", start_time,
 			"-to", end_time,
 			"-i", input_path,
+			"-pix_fmt", "yuv420p",
 			"-crf", ENCODE_CRF,
 			"-preset", ENCODE_PRESET,
 			cut_output_path
 		)
 	end
-	if action == "list" or GENERATE_LIST_ON_CUT then
+
+	local generate_list = false
+	if action == "list" then
+		generate_list = true
+	elseif location == "input" and GENERATE_LIST_ON_INPUT_DIR_CUT then
+		generate_list = true
+	elseif location == "global" and GENERATE_LIST_ON_GLOBAL_DIR_CUT then
+		generate_list = true
+	end
+
+	if generate_list then
+		mp.commandv("run", "mkdir", "-p", list_output_dir)
 		local out_string = "\n" .. mp.get_property("filename") .. ": " .. start_time .. " " .. end_time
 		local file = io.open(list_output_path, "a")
 		file:write(out_string)

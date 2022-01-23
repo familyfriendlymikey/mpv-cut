@@ -34,7 +34,7 @@ You have 3 options with this script:
 - Seek to a later time in the video.
 - Press `c` again to make a copy cut.
 - The resulting video file will be placed in a `CUTS` folder next to the source file.
-- To place in a global custom directory instead (`~/Desktop/cuts`), use capital `C` on the final cut.
+- To place in a global custom directory instead (`~/Desktop`), use capital `C` on the final cut.
 
 It does not matter what hotkey you pressed for the first cut.
 This applies to other options as well, not just copy.
@@ -77,17 +77,21 @@ you will still be able to recover all your hard work.
 
 ## Config
 For convenience I provided several configuration variables at the top of `cut.lua`,
-most of which are probably self explanatory with the exception of `GENERATE_LIST_ON_CUT`.
-All this option does is additionally generate `cut_list.txt` when you make a cut with `copy` or `encode`.
-If you don't want that functionality, just set it to false.
+most of which are probably self explanatory with the exception of `GENERATE_LIST_ON...`.
+By default, if you are cutting to the input directory,
+the script will generate a cut list whenever you cut using the `c` and `e` keys.
+However, it will not if you cut to the global directory with the `C` or `E` keys.
+The logic behind this is, if you are cutting something to the global directory, which is by default the desktop,
+you are probably just sharing the video with a friend or something and don't need a cut list.
+However, if you are cutting to the input dir, you are probably making more cuts for a project or something.
 
 ```lua
 -- USER CONFIGURATION
 
-local GLOBAL_DIR = "~/Desktop/CUTS"
+local GLOBAL_DIR = "~/Desktop"
 
-local CUT_LIST_FILENAME = "cut_list.txt"
-local GENERATE_LIST_ON_CUT = true
+local GENERATE_LIST_ON_INPUT_DIR_CUT = true
+local GENERATE_LIST_ON_GLOBAL_DIR_CUT = false
 
 local ENCODE_CRF = 16
 local ENCODE_PRESET = "superfast"
