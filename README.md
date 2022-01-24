@@ -71,9 +71,23 @@ If the path exists, it generates a `make_cuts.sh` file which runs ffmpeg for eac
 This way, you can remove any cuts you don't want from the temporary file `make_cuts.sh`,
 without tampering with your `cut_list.txt` file.
 
+### Cut List Reasoning
 The purpose of this `list` option is to have a backup file listing all of the cuts you have made,
 so if you ever delete source footage for storage or something,
 you will still be able to recover all your hard work.
+
+Additionally, video seems to be pretty complex.
+One video file may cause certain issues, and another may not,
+which makes writing an ffmpeg command that accounts for all scenarios difficult.
+If you go through a show and make tons of cuts without checking the output files,
+there may have been a technical or user error without you noticing.
+But if we store all of the cuts we have made in a text file,
+even if there is an error it doesn't matter at all since we have all of
+our hard work recorded in a file which takes up virtually no space.
+This just happened to me: I cut many videos with subs to mp4,
+forgetting that mp4 doesn't support softsubs.
+It would have been really annoying to go through and cut everything again,
+but since I have the cut list, it's trivial to re-cut the videos.
 
 ## Config
 For convenience I provided several configuration variables at the top of `cut.lua`,

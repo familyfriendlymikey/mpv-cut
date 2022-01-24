@@ -65,11 +65,9 @@ local function cut(location, action, start_time, end_time)
 			"run",
 			"ffmpeg", "-nostdin", "-y",
 			"-ss", start_time,
-			"-to", end_time,
 			"-i", input_path,
-			"-pix_fmt", "yuv420p",
+			"-t", end_time - start_time,
 			"-c", "copy",
-			"-avoid_negative_ts", "make_zero",
 			cut_output_path
 		)
 	elseif action == "encode" then
@@ -77,8 +75,8 @@ local function cut(location, action, start_time, end_time)
 			"run",
 			"ffmpeg", "-nostdin", "-y",
 			"-ss", start_time,
-			"-to", end_time,
 			"-i", input_path,
+			"-t", end_time - start_time,
 			"-pix_fmt", "yuv420p",
 			"-crf", ENCODE_CRF,
 			"-preset", ENCODE_PRESET,
