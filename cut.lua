@@ -5,8 +5,14 @@ local GLOBAL_DIR = "~/Desktop"
 local GENERATE_LIST_ON_INPUT_DIR_CUT = true
 local GENERATE_LIST_ON_GLOBAL_DIR_CUT = false
 
+local OUTPUT_MP4 = true
+local HARDSUBS = false
+
 local ENCODE_CRF = 16
 local ENCODE_PRESET = "superfast"
+
+local KEY_TOGGLE_HARDSUBS = "h"
+local KEY_TOGGLE_MP4 = "m"
 
 local KEY_INPUT_DIR_COPY = "c"
 local KEY_INPUT_DIR_ENCODE = "e"
@@ -31,9 +37,13 @@ local function cut(location, action, start_time, end_time)
 	local input_path = mp.get_property("path")
 	local input_dir = utils.split_path(input_path)
 	local filename_noext = mp.get_property("filename/no-ext")
-	local ext = mp.get_property("filename"):match("^.+(%..+)$") or ""
+	local ext = mp.get_property("filename"):match("^.+(%..+)$") or ".mp4"
 	local cut_output_dir = mp.command_native({"expand-path", GLOBAL_DIR})
 	local list_output_dir = cut_output_dir
+
+	if OUTPUT_MP4 then
+		ext = ".mp4"
+	end
 
 	if location == "input" then
 		cut_output_dir = utils.join_path(input_dir, "CUTS")
@@ -71,17 +81,34 @@ local function cut(location, action, start_time, end_time)
 			cut_output_path
 		)
 	elseif action == "encode" then
-		mp.commandv(
-			"run",
-			"ffmpeg", "-nostdin", "-y",
-			"-ss", start_time,
-			"-i", input_path,
-			"-t", end_time - start_time,
-			"-pix_fmt", "yuv420p",
-			"-crf", ENCODE_CRF,
-			"-preset", ENCODE_PRESET,
-			cut_output_path
-		)
+		if HARDSUBS then
+			mp.commandv(
+				"run",
+				"ffmpeg", "-nostdin", "-y",
+				"-ss", start_time,
+				"-copyts",
+				"-i", input_path,
+				"-ss", start_time,
+				"-vf", "subtitles=\'" .. input_path .. "\'",
+				"-t", end_time - start_time,
+				"-pix_fmt", "yuv420p",
+				"-crf", ENCODE_CRF,
+				"-preset", ENCODE_PRESET,
+				cut_output_path
+			)
+		else
+			mp.commandv(
+				"run",
+				"ffmpeg", "-nostdin", "-y",
+				"-ss", start_time,
+				"-i", input_path,
+				"-t", end_time - start_time,
+				"-pix_fmt", "yuv420p",
+				"-crf", ENCODE_CRF,
+				"-preset", ENCODE_PRESET,
+				cut_output_path
+			)
+		end
 	end
 
 	local generate_list = false
@@ -112,7 +139,7 @@ local function put_time(location, action)
 
 	if not start_time then
 		text_overlay.hidden = false
-		text_overlay.data = tostring(time)
+		text_overlay.data = tostring(time) .. "\nHARSUBS: " .. tostring(HARDSUBS) .. "\nOUTPUT_MP4: " .. tostring(OUTPUT_MP4)
 		text_overlay:update()
 		start_time = time
 		return
@@ -130,6 +157,20 @@ local function put_time(location, action)
 
 end
 
+local function toggle_hardsubs()
+	mp.msg.info("HS")
+	HARDSUBS = not HARDSUBS
+	text_overlay.data = tostring(start_time) .. "\nHARSUBS: " .. tostring(HARDSUBS) .. "\nOUTPUT_MP4: " .. tostring(OUTPUT_MP4)
+	text_overlay:update()
+end
+
+local function toggle_mp4()
+	mp.msg.info("MP4")
+	OUTPUT_MP4 = not OUTPUT_MP4
+	text_overlay.data = tostring(start_time) .. "\nHARSUBS: " .. tostring(HARDSUBS) .. "\nOUTPUT_MP4: " .. tostring(OUTPUT_MP4)
+	text_overlay:update()
+end
+
 mp.add_key_binding(KEY_INPUT_DIR_COPY, "input_copy", function() put_time("input", "copy") end)
 mp.add_key_binding(KEY_INPUT_DIR_ENCODE, "input_encode", function() put_time("input", "encode") end)
 mp.add_key_binding(KEY_INPUT_DIR_LIST, "input_list", function() put_time("input", "list") end)
@@ -137,3 +178,6 @@ mp.add_key_binding(KEY_INPUT_DIR_LIST, "input_list", function() put_time("input"
 mp.add_key_binding(KEY_GLOBAL_DIR_COPY, "global_copy", function() put_time("global", "copy") end)
 mp.add_key_binding(KEY_GLOBAL_DIR_ENCODE, "global_encode", function() put_time("global", "encode") end)
 mp.add_key_binding(KEY_GLOBAL_DIR_LIST, "global_list", function() put_time("global", "list") end)
+
+mp.add_key_binding(KEY_TOGGLE_HARDSUBS, "toggle_hardsubs", toggle_hardsubs)
+mp.add_key_binding(KEY_TOGGLE_MP4, "toggle_mp4", toggle_mp4)
