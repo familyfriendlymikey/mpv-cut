@@ -125,10 +125,10 @@ local KEY_GLOBAL_DIR_LIST = "L"
 If you want to concatenate cuts into one video, you can do that with ffmpeg.
 To concatenate videos in ffmpeg, you need to create a file with content like this:
 ```
-file 'video1.mp4'
-file 'video2.mp4'
-file 'video3.mp4'
-file 'video4.mp4'
+file video1.mp4
+file video2.mp4
+file video3.mp4
+file video4.mp4
 ```
 And then run the command
 ```
@@ -136,16 +136,32 @@ ffmpeg -f concat -safe 0 -i concat.txt -c copy out.mp4
 ```
 You can name the file whatever you want, here I named it `concat.txt`.
 
-Creating this file is trivial with bash
+Both of these steps are trivial with bash.
 ```
-for f in CUTS/*; do echo "file '$f'" >> concat.txt; done
+ffmpeg -f concat -safe 0 -i <(printf 'file %q\n' "$PWD"/{COPY_*,ENCODE_*}) -c copy lol.mp4
 ```
+You need to escape apostrophes which is why we are using `printf %q "$string"`.
+Instead of actually creating a file we just use process substitution `<(whatever)` to create a temporary file,
+which is why we need the `$PWD` in there for the absolute path.
+We want all files in the current directory that start with `COPY_` and `ENCODE_`,
+which is why we are using brace expansion on the `$PWD`, so we don't have to type it twice.
 
-But honestly I prefer to do it in vim,
-since I can just pipe `ls` to vim and delete/rearrange any lines I want modified.
+
+We can put this into a function
+```
+function fcd() { ffmpeg -f concat -safe 0 -i <(printf 'file %q\n' "$PWD"/{COPY_*,ENCODE_*}) -c copy "$1" }
+```
+Now all we have to do is
+```
+fcd output_filename.mp4
+```
+I'll type it by hand for the time being so I can learn how to better use printf.
+
+You could also do it in vim.
 ```
 ls | vim -
-:%s/.*/file '&'
+:%s/'/\\'/g
+:%norm Ifile 
 :wq concat.txt
 ```
 
