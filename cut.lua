@@ -38,22 +38,20 @@ local function cut(location, action, start_time, end_time)
 	local input_dir = utils.split_path(input_path)
 	local filename_noext = mp.get_property("filename/no-ext")
 	local ext = mp.get_property("filename"):match("^.+(%..+)$") or ".mp4"
-	local cut_output_dir = mp.command_native({"expand-path", GLOBAL_DIR})
-	local list_output_dir = cut_output_dir
+	local output_dir = mp.command_native({"expand-path", GLOBAL_DIR})
 
 	if OUTPUT_MP4 then
 		ext = ".mp4"
 	end
 
 	if location == "input" then
-		cut_output_dir = utils.join_path(input_dir, "CUTS")
-		list_output_dir = input_dir
+		output_dir = utils.join_path(input_dir, "CUTS")
 	end
 
 	local prefix = action == "encode" and "ENCODE_" or "COPY_"
 	local output_filename = prefix .. filename_noext .. "_FROM_" .. start_time .. "_TO_" .. end_time .. ext
-	local cut_output_path = utils.join_path(cut_output_dir, output_filename)
-	local list_output_path = utils.join_path(list_output_dir, filename_noext .. ".txt")
+	local cut_output_path = utils.join_path(output_dir, output_filename)
+	local list_output_path = utils.join_path(output_dir, filename_noext .. ".txt")
 
 	mp.msg.info("ACTION: " .. action)
 	mp.msg.info("LOCATION: " .. location)
@@ -61,13 +59,12 @@ local function cut(location, action, start_time, end_time)
 	mp.msg.info("INPUT DIR: " .. input_dir)
 	mp.msg.info("FILENAME: " .. filename_noext)
 	mp.msg.info("EXT: " .. ext)
-	mp.msg.info("CUT OUTPUT DIR: " .. cut_output_dir)
+	mp.msg.info("OUTPUT DIR: " .. output_dir)
 	mp.msg.info("CUT OUTPUT PATH: " .. cut_output_path)
-	mp.msg.info("LIST OUTPUT DIR: " .. list_output_dir)
 	mp.msg.info("LIST OUTPUT PATH: " .. list_output_path)
 
 	if action == "copy" or action == "encode" then
-		mp.commandv("run", "mkdir", "-p", cut_output_dir)
+		mp.commandv("run", "mkdir", "-p", output_dir)
 	end
 
 	if action == "copy" then
@@ -121,7 +118,6 @@ local function cut(location, action, start_time, end_time)
 	end
 
 	if generate_list then
-		mp.commandv("run", "mkdir", "-p", list_output_dir)
 		local out_string = "\n" .. mp.get_property("filename") .. ": " .. start_time .. " " .. end_time
 		local file = io.open(list_output_path, "a")
 		file:write(out_string)
