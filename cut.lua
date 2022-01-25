@@ -2,25 +2,21 @@
 
 local GLOBAL_DIR = "~/Desktop"
 
-local GENERATE_LIST_ON_INPUT_DIR_CUT = true
-local GENERATE_LIST_ON_GLOBAL_DIR_CUT = false
-
+local ACTION = "copy"
+local GENERATE_LIST = true
+local USE_GLOBAL_DIR = false
 local OUTPUT_MP4 = true
 local HARDSUBS = false
 
 local ENCODE_CRF = 16
 local ENCODE_PRESET = "superfast"
 
+local KEY_CUT = "c"
+local KEY_TOGGLE_ACTION = "a"
+local KEY_TOGGLE_GENERATE_LIST = "l"
 local KEY_TOGGLE_HARDSUBS = "h"
 local KEY_TOGGLE_MP4 = "m"
-
-local KEY_INPUT_DIR_COPY = "c"
-local KEY_INPUT_DIR_ENCODE = "e"
-local KEY_INPUT_DIR_LIST = "l"
-
-local KEY_GLOBAL_DIR_COPY = "C"
-local KEY_GLOBAL_DIR_ENCODE = "E"
-local KEY_GLOBAL_DIR_LIST = "L"
+local KEY_TOGGLE_USE_GLOBAL_DIR = "g"
 
 -- END USER CONFIGURATION
 
@@ -32,7 +28,7 @@ text_overlay:update()
 
 local start_time = nil
 
-local function cut(location, action, start_time, end_time)
+local function cut(start_time, end_time)
 
 	local input_path = mp.get_property("path")
 	local input_dir = utils.split_path(input_path)
@@ -44,17 +40,16 @@ local function cut(location, action, start_time, end_time)
 		ext = ".mp4"
 	end
 
-	if location == "input" then
+	if not USE_GLOBAL_DIR then
 		output_dir = utils.join_path(input_dir, "CUTS")
 	end
 
-	local prefix = action == "encode" and "ENCODE_" or "COPY_"
+	local prefix = ACTION == "encode" and "ENCODE_" or "COPY_"
 	local output_filename = prefix .. filename_noext .. "_FROM_" .. start_time .. "_TO_" .. end_time .. ext
 	local cut_output_path = utils.join_path(output_dir, output_filename)
 	local list_output_path = utils.join_path(output_dir, filename_noext .. ".txt")
 
-	mp.msg.info("ACTION: " .. action)
-	mp.msg.info("LOCATION: " .. location)
+	mp.msg.info("ACTION: " .. ACTION)
 	mp.msg.info("INPUT PATH: " .. input_path)
 	mp.msg.info("INPUT DIR: " .. input_dir)
 	mp.msg.info("FILENAME: " .. filename_noext)
@@ -63,11 +58,9 @@ local function cut(location, action, start_time, end_time)
 	mp.msg.info("CUT OUTPUT PATH: " .. cut_output_path)
 	mp.msg.info("LIST OUTPUT PATH: " .. list_output_path)
 
-	if action == "copy" or action == "encode" then
-		mp.commandv("run", "mkdir", "-p", output_dir)
-	end
+	mp.commandv("run", "mkdir", "-p", output_dir)
 
-	if action == "copy" then
+	if ACTION == "copy" then
 		mp.commandv(
 			"run",
 			"ffmpeg", "-nostdin", "-y",
@@ -77,7 +70,7 @@ local function cut(location, action, start_time, end_time)
 			"-c", "copy",
 			cut_output_path
 		)
-	elseif action == "encode" then
+	elseif ACTION == "encode" then
 		if HARDSUBS then
 			mp.commandv(
 				"run",
@@ -108,16 +101,7 @@ local function cut(location, action, start_time, end_time)
 		end
 	end
 
-	local generate_list = false
-	if action == "list" then
-		generate_list = true
-	elseif location == "input" and GENERATE_LIST_ON_INPUT_DIR_CUT then
-		generate_list = true
-	elseif location == "global" and GENERATE_LIST_ON_GLOBAL_DIR_CUT then
-		generate_list = true
-	end
-
-	if generate_list then
+	if ACTION == "list" or GENERATE_LIST then
 		local out_string = "\n" .. mp.get_property("filename") .. ": " .. start_time .. " " .. end_time
 		local file = io.open(list_output_path, "a")
 		file:write(out_string)
@@ -130,19 +114,38 @@ local function cut(location, action, start_time, end_time)
 
 end
 
-local function put_time(location, action)
+local function refresh_osd()
+	text_overlay.data =
+		tostring(start_time)
+		.. "\nACTION <" .. KEY_TOGGLE_ACTION .. ">: " .. ACTION
+		.. "\nUSE GLOBAL DIR <" .. KEY_TOGGLE_USE_GLOBAL_DIR .. ">: " .. tostring(USE_GLOBAL_DIR)
+
+	if ACTION == "copy" or ACTION == "encode" then
+		text_overlay.data = text_overlay.data
+			.. "\nGENERATE LIST <" .. KEY_TOGGLE_GENERATE_LIST .. ">: " .. tostring(GENERATE_LIST)
+			.. "\nOUTPUT MP4 <" .. KEY_TOGGLE_MP4 .. ">: " .. tostring(OUTPUT_MP4)
+	end
+
+	if ACTION == "encode" then
+		text_overlay.data = text_overlay.data
+			.. "\nHARSUBS <" .. KEY_TOGGLE_HARDSUBS .. ">: " .. tostring(HARDSUBS)
+	end
+
+	text_overlay.hidden = false
+	text_overlay:update()
+end
+
+local function put_time()
 	local time = mp.get_property_number("time-pos")
 
 	if not start_time then
-		text_overlay.hidden = false
-		text_overlay.data = tostring(time) .. "\nHARSUBS: " .. tostring(HARDSUBS) .. "\nOUTPUT_MP4: " .. tostring(OUTPUT_MP4)
-		text_overlay:update()
 		start_time = time
+		refresh_osd()
 		return
 	end
 
 	if time > start_time then
-		cut(location, action, start_time, time)
+		cut(start_time, time)
 		start_time = nil
 	else
 		text_overlay.hidden = true
@@ -154,26 +157,39 @@ local function put_time(location, action)
 end
 
 local function toggle_hardsubs()
-	mp.msg.info("HS")
 	HARDSUBS = not HARDSUBS
-	text_overlay.data = tostring(start_time) .. "\nHARSUBS: " .. tostring(HARDSUBS) .. "\nOUTPUT_MP4: " .. tostring(OUTPUT_MP4)
-	text_overlay:update()
+	refresh_osd()
 end
 
 local function toggle_mp4()
-	mp.msg.info("MP4")
 	OUTPUT_MP4 = not OUTPUT_MP4
-	text_overlay.data = tostring(start_time) .. "\nHARSUBS: " .. tostring(HARDSUBS) .. "\nOUTPUT_MP4: " .. tostring(OUTPUT_MP4)
-	text_overlay:update()
+	refresh_osd()
 end
 
-mp.add_key_binding(KEY_INPUT_DIR_COPY, "input_copy", function() put_time("input", "copy") end)
-mp.add_key_binding(KEY_INPUT_DIR_ENCODE, "input_encode", function() put_time("input", "encode") end)
-mp.add_key_binding(KEY_INPUT_DIR_LIST, "input_list", function() put_time("input", "list") end)
+local function toggle_generate_list()
+	GENERATE_LIST = not GENERATE_LIST
+	refresh_osd()
+end
 
-mp.add_key_binding(KEY_GLOBAL_DIR_COPY, "global_copy", function() put_time("global", "copy") end)
-mp.add_key_binding(KEY_GLOBAL_DIR_ENCODE, "global_encode", function() put_time("global", "encode") end)
-mp.add_key_binding(KEY_GLOBAL_DIR_LIST, "global_list", function() put_time("global", "list") end)
+local function toggle_use_global_dir()
+	USE_GLOBAL_DIR = not USE_GLOBAL_DIR
+	refresh_osd()
+end
 
+local function toggle_action()
+	if ACTION == "copy" then
+		ACTION = "encode"
+	elseif ACTION == "encode" then
+		ACTION = "list"
+	else
+		ACTION = "copy"
+	end
+	refresh_osd()
+end
+
+mp.add_key_binding(KEY_CUT, "cut", put_time)
 mp.add_key_binding(KEY_TOGGLE_HARDSUBS, "toggle_hardsubs", toggle_hardsubs)
 mp.add_key_binding(KEY_TOGGLE_MP4, "toggle_mp4", toggle_mp4)
+mp.add_key_binding(KEY_TOGGLE_GENERATE_LIST, "toggle_generate_list", toggle_generate_list)
+mp.add_key_binding(KEY_TOGGLE_ACTION, "toggle_action", toggle_action)
+mp.add_key_binding(KEY_TOGGLE_USE_GLOBAL_DIR, "toggle_use_global_dir", toggle_use_global_dir)
