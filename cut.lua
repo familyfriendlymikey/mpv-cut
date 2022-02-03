@@ -5,7 +5,7 @@ local GLOBAL_DIR = "~/Desktop"
 local ACTION = "copy"
 local GENERATE_LIST = true
 local USE_GLOBAL_DIR = false
-local OUTPUT_MP4 = true
+local OUTPUT_MP4 = false
 local HARDSUBS = false
 
 local ENCODE_CRF = 16
