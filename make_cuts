@@ -1,19 +1,21 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # USER CONFIGURATION
 
 OUTFILE_NAME = 'make_cuts.sh'
-INFILE_NAME = 'cut_list.txt'
-CRF = "10"
+CRF = "16"
 PRESET = "superfast"
 
 # END USER CONFIGURATION
 
 import sys
+import subprocess
 from pathlib import Path
 
-if len(sys.argv) == 2:
-    INFILE_NAME = sys.argv[1]
+if len(sys.argv) <= 1:
+    sys.exit()
+
+INFILE_NAME = sys.argv[-1]
 
 if not Path(INFILE_NAME).is_file():
     print("Invalid infile:", INFILE_NAME)
@@ -21,35 +23,65 @@ if not Path(INFILE_NAME).is_file():
 
 print("Using:", INFILE_NAME)
 
-out_string = "mkdir CUTS/\n"
 
 def line_is_valid(line):
     if line.strip():
         return True
     return False
 
-with open(INFILE_NAME, 'r') as infile:
-    for line in infile:
+if "-o" not in sys.argv:
+    with open(INFILE_NAME, 'r') as infile:
+        for line in infile:
 
-        if not line_is_valid(line):
-            continue
+            if not line_is_valid(line):
+                continue
 
-        split_line = line.split(":", 1)
-        infile_name = split_line.pop(0)
-        infile_name_noext = infile_name.split(".")[0]
+            split_line = line.split(":", 1)
+            infile_name = split_line.pop(0)
+            infile_name_noext = infile_name.split(".")[0]
 
-        times = split_line[0].split()
-        start_time = times[0]
-        end_time = times[1]
-        start_time_dashed = start_time.replace(":", "-")
-        end_time_dashed = end_time.replace(":", "-")
+            times = split_line[0].split()
+            start_time = times[0]
+            end_time = times[1]
+            start_time_dashed = start_time.replace(":", "-")
+            end_time_dashed = end_time.replace(":", "-")
 
-        out_string += f"ffmpeg -ss {start_time} -to {end_time} -i \"{infile_name}\""
-        out_string += f" -crf {CRF} -preset {PRESET} "
-        out_string += f"\"CUTS/CUT_{infile_name_noext}_FROM_{start_time_dashed}_TO_{end_time_dashed}.mkv\""
-        out_string += "\n"
+            subprocess.run([
+                "ffmpeg",
+                "-ss", start_time,
+                "-i", infile_name,
+                "-t", str(float(end_time) - float(start_time)),
+                "-crf", CRF,
+                "-preset", PRESET,
+                "-pix_fmt", "yuv420p",
+                f"CUTS/CUT_{infile_name_noext}_FROM_{start_time_dashed}_TO_{end_time_dashed}.mp4"
+            ])
 
-print("\n" + out_string)
-with open(OUTFILE_NAME, 'w') as outfile:
-    outfile.write(out_string.strip("\n"))
-print("Done.")
+else:
+
+    out_string = "mkdir CUTS/\n"
+
+    with open(INFILE_NAME, 'r') as infile:
+        for line in infile:
+
+            if not line_is_valid(line):
+                continue
+
+            split_line = line.split(":", 1)
+            infile_name = split_line.pop(0)
+            infile_name_noext = infile_name.split(".")[0]
+
+            times = split_line[0].split()
+            start_time = times[0]
+            end_time = times[1]
+            start_time_dashed = start_time.replace(":", "-")
+            end_time_dashed = end_time.replace(":", "-")
+
+            out_string += f"ffmpeg -ss {start_time} -to {end_time} -i \"{infile_name}\""
+            out_string += f" -crf {CRF} -preset {PRESET} -pix_fmt yuv420p "
+            out_string += f"\"CUTS/CUT_{infile_name_noext}_FROM_{start_time_dashed}_TO_{end_time_dashed}.mp4\""
+            out_string += "\n"
+
+    with open(OUTFILE_NAME, 'w') as outfile:
+        outfile.write(out_string.strip("\n"))
+    print("Done.")
