@@ -23,29 +23,32 @@ if not Path(INFILE_NAME).is_file():
 
 print("Using:", INFILE_NAME)
 
-
 def line_is_valid(line):
     if line.strip():
         return True
     return False
 
-if "-o" not in sys.argv:
-    with open(INFILE_NAME, 'r') as infile:
-        for line in infile:
+with open(INFILE_NAME, 'r') as infile:
+    for line in infile:
 
-            if not line_is_valid(line):
-                continue
+        if not line_is_valid(line):
+            continue
 
-            split_line = line.split(":", 1)
-            infile_name = split_line.pop(0)
-            infile_name_noext = infile_name.split(".")[0]
+        split_line = line.split(":", 1)
+        infile_name = split_line.pop(0)
+        infile_name_noext = infile_name.split(".")[0]
+        ext = Path(infile_name).suffix
 
-            times = split_line[0].split()
-            start_time = times[0]
-            end_time = times[1]
-            start_time_dashed = start_time.replace(":", "-")
-            end_time_dashed = end_time.replace(":", "-")
+        times = split_line[0].split()
+        start_time = times[0]
+        end_time = times[1]
+        start_time_dashed = start_time.replace(":", "-")
+        end_time_dashed = end_time.replace(":", "-")
 
+        subprocess.run(["mkdir", "CUTS"])
+
+        if "encode" in sys.argv:
+            print("ENCODING")
             subprocess.run([
                 "ffmpeg",
                 "-ss", start_time,
@@ -54,34 +57,15 @@ if "-o" not in sys.argv:
                 "-crf", CRF,
                 "-preset", PRESET,
                 "-pix_fmt", "yuv420p",
-                f"CUTS/CUT_{infile_name_noext}_FROM_{start_time_dashed}_TO_{end_time_dashed}.mp4"
+                f"CUTS/CUT_{infile_name_noext}_FROM_{start_time_dashed}_TO_{end_time_dashed}{ext}"
             ])
-
-else:
-
-    out_string = "mkdir CUTS/\n"
-
-    with open(INFILE_NAME, 'r') as infile:
-        for line in infile:
-
-            if not line_is_valid(line):
-                continue
-
-            split_line = line.split(":", 1)
-            infile_name = split_line.pop(0)
-            infile_name_noext = infile_name.split(".")[0]
-
-            times = split_line[0].split()
-            start_time = times[0]
-            end_time = times[1]
-            start_time_dashed = start_time.replace(":", "-")
-            end_time_dashed = end_time.replace(":", "-")
-
-            out_string += f"ffmpeg -ss {start_time} -to {end_time} -i \"{infile_name}\""
-            out_string += f" -crf {CRF} -preset {PRESET} -pix_fmt yuv420p "
-            out_string += f"\"CUTS/CUT_{infile_name_noext}_FROM_{start_time_dashed}_TO_{end_time_dashed}.mp4\""
-            out_string += "\n"
-
-    with open(OUTFILE_NAME, 'w') as outfile:
-        outfile.write(out_string.strip("\n"))
-    print("Done.")
+        else:
+            print("COPYING:", line)
+            subprocess.run([
+                "ffmpeg",
+                "-ss", start_time,
+                "-i", infile_name,
+                "-t", str(float(end_time) - float(start_time)),
+                "-c", "copy",
+                f"CUTS/CUT_{infile_name_noext}_FROM_{start_time_dashed}_TO_{end_time_dashed}{ext}"
+            ])
