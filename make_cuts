@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
+#! /usr/bin/env python3
 
 # USER CONFIGURATION
 
-OUTFILE_NAME = 'make_cuts.sh'
 CRF = "16"
 PRESET = "superfast"
 
