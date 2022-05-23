@@ -1,1 +1,4 @@
 .DS_Store
+test_video*
+config.lua
+make_cuts

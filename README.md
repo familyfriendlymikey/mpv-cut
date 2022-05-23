@@ -7,32 +7,27 @@ quickly cut videos both losslessly and re-encoded-ly
 with the help of the fantastic media player
 [mpv](https://mpv.io/installation/).
 
-There is also the added functionality of logging
-the timestamps of all cuts you have made to
-a text file referred to as a "cut list".
-This serves as a backup in the event you make many cuts on a long video.
-
-Lastly, I have added a bookmarking functionality of sorts,
-which appends the current timestamp to a text file and then
-reloads those timestamps as chapters in mpv.
-This is useful when watching shows or movies
-where you might want to compile funny or cool moments
-but don't want to ruin your watching
-experience by making cuts as you watch.
+There is also the added functionality of:
+- Logging the timestamps of cuts to a text file for later use with the `make_cuts` script.
+- Logging the current timestamp to a bookmark file and reloading them as chapters in mpv.
 
 More details in [usage](#usage).
 
+## Requirements
+Besides mpv, you must have the following in your PATH:
+- ffmpeg
+- node
+
 ## Installation
-Place `cut.lua` into one of the following directories:
 
 #### Linux/MacOS
 ```
-~/.config/mpv/scripts/
+git clone https://github.com/familyfriendlymikey/mpv-cut.git ~/.config/mpv/scripts/
 ```
 
 #### Windows
 ```
-%AppData%\Roaming\mpv\scripts\
+git clone https://github.com/familyfriendlymikey/mpv-cut.git %AppData%\Roaming\mpv\scripts\
 ```
 
 That's all you have to do, next time you run mpv the script will be automatically loaded.
@@ -45,22 +40,45 @@ That's all you have to do, next time you run mpv the script will be automaticall
 - Seek to a later time in the video.
 - Press `c` again to make the cut.
 
-The resulting video file will be placed in a
-`CUTS` folder in the same directory as the source file.
+The resulting cut will be placed in the same directory as the source file.
 
 ### Other Actions
 
-You can press `a` to cycle between the three available actions:
+You can press `a` to cycle between the two default actions:
 
-- Copy (lossless cut, rounds to keyframes)
-- Encode (re-encoded cut, exact)
-- List (generate the cut list file only, does not cut the video)
+- Copy (lossless cut, rounds to keyframes).
+- Encode (re-encoded cut, exact).
 
 ### Cutting To Global Dir
 
 You can press `g` to toggle saving to the
 configured global directory as opposed to
 the same directory as the source file.
+
+### Cut Lists
+Instead of making cuts immediately, you can choose to store all cuts
+in a "cut list" text file.
+Toggle this behavior with the `l` key.
+When you're ready to make your cuts, press `0` in mpv.
+
+The `make_cuts` script can also be invoked directly.
+It must be supplied with rows of JSON from stdin.
+In the case of a cut list, you can simply do
+```
+cat cut_list_name.list | ./make_cuts
+```
+The `make_cuts` script takes 0 to 2 arguments:
+- If there are `0` arguments,
+it will use the current working directory
+as the input dir to look for the filenames of the cuts passed
+to it, and will also output cuts to the current directory.
+- If there is `1` argument, it will use it
+as both the indir and outdir.
+- If there are `2` arguments, it will use the first one
+as the indir and the second one as the outdir.
+
+If any of the filenames do not exist in the indir,
+the ffmpeg command for that cut will simply fail.
 
 ### Bookmarking
 
@@ -71,49 +89,49 @@ You can navigate between these chapters with the default mpv bindings,
 
 ### Channels
 
-The resulting cut list and bookmark files will
+The resulting cuts and bookmark files will
 be prefixed with one of ten channel names.
 This is to help you categorize cuts and bookmarks.
-You can press `0` through `9` to select a channel,
-or press `-` to decrement the channel and `+` to increment the channel.
+You can press `-` to decrement the channel
+and `+` to increment the channel.
 If there is no configured name for a channel,
 the channel number will be used instead.
 
-### make_cuts
-
-When using the "list" action,
-you can use the `make_cuts` helper script,
-which will generate a temporary file named `make_cuts.sh`,
-which can be edited to your liking and then executed.
-See [rationale](#why-does-make-cuts-generate-another-file-instead-of-just-cutting) for more.
-
-If you use make_cuts often, to make things more convenient
-you can add the script to your path:
-
-- Add a custom folder to your PATH such as `~/bin`.
-- Place the `make_cuts` script in that folder.
-- Run it anywhere with bash simply by running the command `make_cuts`.
-
 ## Config
 
-You can configure settings by editing `cut.lua`:
+You can configure settings by creating a `config.lua` file
+in the same directory as `main.lua`.
+
+You can include or omit any of the following:
 ```lua
-local GLOBAL_DIR = "~/Desktop"
+-- Set to true if you want to use the global dir by default.
+USE_GLOBAL_DIR = true
 
-local ACTION = "copy"
-local GENERATE_CUT_LIST = true
-local USE_GLOBAL_DIR = false
+-- Configure your global directory
+GLOBAL_DIR = "~/Desktop"
 
-local ENCODE_CRF = 16
-local ENCODE_PRESET = "superfast"
+-- Set to true if you want to use cut lists by default.
+USE_CUT_LIST = false
 
-local DEFAULT_CHANNEL = 0
+-- The list of actions to cycle through, in order.
+ACTIONS = { "COPY", "ENCODE" }
 
-CHANNEL_NAMES[0] = "FUNNY"
-CHANNEL_NAMES[1] = "COOL"
-CHANNEL_NAMES[2] = "SEXY"
+-- The list of channel names, you can choose whatever you want.
+CHANNEL_NAMES = {}
+
+-- The default channel
+CHANNEL = 1
+
+-- Key config
+KEY_CUT = "c"
+KEY_MAKE_CUTS = "0"
+KEY_CYCLE_ACTION = "a"
+KEY_TOGGLE_USE_GLOBAL_DIR = "g"
+KEY_TOGGLE_USE_CUT_LIST = "l"
+KEY_BOOKMARK_ADD = "i"
+KEY_CHANNEL_INC = "="
+KEY_CHANNEL_DEC = "-"
 ```
-You can also configure all of the key mappings.
 
 ## Optimized MPV Input Config
 
@@ -140,7 +158,7 @@ to your liking in `mpv.conf`.
 
 ## Rationale And Other Helpful Information
 
-### Why Is Cut List On By Default?
+### What Is The Point Of A Cut List?
 
 There are plenty of reasons, but to give some examples:
 
@@ -162,9 +180,6 @@ resulting in cuts that have no subtitles.
 - You delete the source video for storage reasons,
 but still want to have a back up of the cut timestamps
 in the event you need to remake the cuts.
-
-If you'd like to turn it off by default,
-you can do so by setting `GENERATE_CUT_LIST = false` in the config.
 
 ### Why Would I Bookmark Instead Of Cutting?
 
@@ -193,19 +208,6 @@ but the cuts are not exact. Sometimes you want a cut to be exact.
 - If you want to encode hardsubs.
 - If the video's compression isn't efficient enough to upload
 to a messaging platform or something, you may want to compress it more.
-
-For convenience, I put two variables at the top of `cut.lua` which you can modify to your liking:
-```
-local ENCODE_CRF = 16
-local ENCODE_PRESET = "superfast"
-```
-The `CRF` is the quality, with `0` being lossless,
-`51` being horrible quality,
-and `18` being agreed upon as mostly perceptually lossless.
-
-The `preset` is how fast you want to compress the video,
-with faster presets resulting in
-potentially larger files/potentially worse quality.
 
 ### How Can I Merge (Concatenate) The Resulting Cuts Into One File?
 
