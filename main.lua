@@ -152,7 +152,7 @@ local function make_cuts()
 	local inpath, filename, channel_name = get_file_info()
 	local indir = utils.split_path(inpath)
 	local file = io.open(inpath .. ".list", "r")
-	local args = { MAKE_CUTS_SCRIPT_PATH, indir }
+	local args = { "node", MAKE_CUTS_SCRIPT_PATH, indir }
 	if USE_GLOBAL_DIR then table.insert(args, GLOBAL_DIR) end
 	if file ~= nil then
 		print("Making cuts")
@@ -171,7 +171,7 @@ end
 local function make_cut(json_string)
 	local inpath, filename, channel_name = get_file_info()
 	local indir = utils.split_path(inpath)
-	local args = { MAKE_CUTS_SCRIPT_PATH, indir }
+	local args = { "node", MAKE_CUTS_SCRIPT_PATH, indir }
 	if USE_GLOBAL_DIR then table.insert(args, GLOBAL_DIR) end
 	print("Making cut")
 	mp.command_native_async({

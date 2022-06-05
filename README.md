@@ -22,12 +22,12 @@ Besides mpv, you must have the following in your PATH:
 
 #### Linux/MacOS
 ```
-git clone https://github.com/familyfriendlymikey/mpv-cut.git ~/.config/mpv/scripts/
+git clone -b release --single-branch "https://github.com/familyfriendlymikey/mpv-cut.git" ~/.config/mpv/scripts/mpv-cut
 ```
 
 #### Windows
 ```
-git clone https://github.com/familyfriendlymikey/mpv-cut.git %AppData%\Roaming\mpv\scripts\
+git clone -b release --single-branch "https://github.com/familyfriendlymikey/mpv-cut.git" %AppData%\Roaming\mpv\scripts\mpv-cut
 ```
 
 That's all you have to do, next time you run mpv the script will be automatically loaded.
