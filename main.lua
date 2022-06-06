@@ -1,6 +1,8 @@
 utils = require "mp.utils"
 pcall(require, "config")
 
+mp.msg.info("yo")
+
 if USE_GLOBAL_DIR == nil then USE_GLOBAL_DIR = true end
 if GLOBAL_DIR == nil then GLOBAL_DIR = "~/Desktop" end
 if USE_CUT_LIST == nil then USE_CUT_LIST = false end

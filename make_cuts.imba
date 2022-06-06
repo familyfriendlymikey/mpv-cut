@@ -2,6 +2,8 @@ let { readFileSync, statSync } = require 'fs'
 let { spawnSync } = require 'child_process'
 let path = require "path"
 
+console.log "yo"
+
 let p = console.log
 let red = "\x1b[31m"
 let plain = "\x1b[0m"

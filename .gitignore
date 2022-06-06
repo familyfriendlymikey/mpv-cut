@@ -1,4 +1,6 @@
 .DS_Store
 test_video*
 config.lua
-make_cuts.js
+make_cuts
+node_modules
+dist/
