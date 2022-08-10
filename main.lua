@@ -1,7 +1,7 @@
 utils = require "mp.utils"
 pcall(require, "config")
 
-mp.msg.info("yo")
+mp.msg.info("MPV-CUT LOADED.")
 
 if USE_GLOBAL_DIR == nil then USE_GLOBAL_DIR = true end
 if GLOBAL_DIR == nil then GLOBAL_DIR = "~/Desktop" end
@@ -159,11 +159,11 @@ local function make_cuts()
 	if file ~= nil then
 		print("Making cuts")
 		local json_string = file:read("*all")
+		table.insert(args, json_string)
 		mp.command_native_async({
 				name = "subprocess",
 				playback_only = false,
-				args = args,
-				stdin_data = json_string
+				args = args
 		}, print_async_result)
 	else
 		print("Failed to load cut list")
@@ -175,12 +175,12 @@ local function make_cut(json_string)
 	local indir = utils.split_path(inpath)
 	local args = { "node", MAKE_CUTS_SCRIPT_PATH, indir }
 	if USE_GLOBAL_DIR then table.insert(args, GLOBAL_DIR) end
+	table.insert(args, json_string)
 	print("Making cut")
 	mp.command_native_async({
 			name = "subprocess",
 			playback_only = false,
 			args = args,
-			stdin_data = json_string
 	}, print_async_result)
 end
 

@@ -8,7 +8,7 @@ let plain = "\x1b[0m"
 let green = "\x1b[32m"
 let purple = "\x1b[34m"
 
-p "IN MAKE_CUTS..."
+p "IN MAKE_CUTS"
 
 def quit s
 	p "{red}{s}, quitting.{plain}\n"
@@ -20,13 +20,7 @@ def is_dir s
 	catch
 		return no
 
-def parse_stdin
-
-	const chunks = []
-	for await chunk of process.stdin
-		chunks.push(chunk)
-	let data = Buffer.concat(chunks).toString('utf8')
-
+def parse_json data
 	let failed = new Set!
 	let succeeded = new Set!
 
@@ -49,12 +43,12 @@ def parse_stdin
 
 def main
 
-	let cut_list = await parse_stdin()
-	quit "No valid cuts" if cut_list.length < 1
-
+	let argv = process.argv.slice(2)
+	p "ARGS:"
+	p argv
+	let json = argv.pop!
 	let indir
 	let outdir
-	let argv = process.argv.slice(2)
 	switch argv.length
 		when 0
 			indir = outdir = "."
@@ -64,6 +58,9 @@ def main
 			[indir, outdir] = argv
 		else
 			quit "Invalid args: {process.argv}"
+
+	let cut_list = parse_json json
+	quit "No valid cuts" if cut_list.length < 1
 
 	quit "Input directory is invalid" if not is_dir indir
 	quit "Output directory is invalid" if not is_dir outdir
