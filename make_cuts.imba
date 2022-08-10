@@ -2,13 +2,13 @@ let { readFileSync, statSync } = require 'fs'
 let { spawnSync } = require 'child_process'
 let path = require "path"
 
-console.log "yo"
-
 let p = console.log
 let red = "\x1b[31m"
 let plain = "\x1b[0m"
 let green = "\x1b[32m"
 let purple = "\x1b[34m"
+
+p "IN MAKE_CUTS..."
 
 def quit s
 	p "{red}{s}, quitting.{plain}\n"
@@ -21,9 +21,14 @@ def is_dir s
 		return no
 
 def parse_stdin
+
+	const chunks = []
+	for await chunk of process.stdin
+		chunks.push(chunk)
+	let data = Buffer.concat(chunks).toString('utf8')
+
 	let failed = new Set!
 	let succeeded = new Set!
-	let data = readFileSync 0, 'utf8'
 
 	for line in data.split '\n'
 		line = line.trim!
@@ -44,7 +49,7 @@ def parse_stdin
 
 def main
 
-	let cut_list = parse_stdin()
+	let cut_list = await parse_stdin()
 	quit "No valid cuts" if cut_list.length < 1
 
 	let indir
