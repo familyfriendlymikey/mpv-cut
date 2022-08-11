@@ -26,8 +26,10 @@ git clone -b release --single-branch "https://github.com/familyfriendlymikey/mpv
 ```
 
 #### Windows
+In
+`%AppData%\Roaming\mpv\scripts` or `Users\user\scoop\persist\mpv\scripts` run:
 ```
-git clone -b release --single-branch "https://github.com/familyfriendlymikey/mpv-cut.git" %AppData%\Roaming\mpv\scripts\mpv-cut
+git clone -b release --single-branch "https://github.com/familyfriendlymikey/mpv-cut.git"
 ```
 
 That's all you have to do, next time you run mpv the script will be automatically loaded.
@@ -62,12 +64,12 @@ Toggle this behavior with the `l` key.
 When you're ready to make your cuts, press `0` in mpv.
 
 The `make_cuts` script can also be invoked directly.
-It must be supplied with rows of JSON from stdin.
+The very last argument must be rows of JSON.
 In the case of a cut list, you can simply do
 ```
-cat cut_list_name.list | ./make_cuts
+./make_cuts "$(cat cut_list_name.list)"
 ```
-The `make_cuts` script takes 0 to 2 arguments:
+Preceding the aforementioned JSON argument may be 0 to 2 arguments:
 - If there are `0` arguments,
 it will use the current working directory
 as the input dir to look for the filenames of the cuts passed
@@ -279,3 +281,24 @@ Once you are done generating the cut list,
 simply open the `cut_list.txt` file,
 substitute the proxy file name for the original file name,
 and run `make_cuts` on it.
+
+## Development
+
+Uploading releases to GitHub is a pain, so I thought why not create an orphaned branch for releases.
+
+To set it up, all I did was:
+```
+git checkout --orphan release
+```
+
+Then, when I want to release a new version, until I find a better way I just do:
+```
+TMPDIR=`mktemp -d`
+cp dist/* "$TMPDIR"
+git checkout release
+git rm -r '*'
+cp "$TMPDIR"/* .
+git add --all
+git commit -m "version number"
+git push
+```
