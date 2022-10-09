@@ -7,6 +7,7 @@
     "build:add-hashbang": "echo '#! /usr/bin/env node\n' > dist/make_cuts",
     "build:compile-imba": "imbac -p make_cuts.imba >> dist/make_cuts",
     "build:copy-lua": "cp main.lua dist/",
+    "build:copy-package.json": "cp package.json dist/",
     "build": "npm exec npm-run-all build:*",
     "release": "npm run build && npx gh-pages --branch release --dist dist/ --message $npm_package_version"
   },
