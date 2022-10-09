@@ -1,19 +1,30 @@
 {
   "name": "mpv-cut",
-  "version": "1.0.0",
-  "description": "## What Is This",
-  "main": "index.js",
+  "version": "1.1.1",
+  "description": "Quickly cut videos both losslessly and re-encoded-ly.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:make-dist": "mkdir -p dist",
+    "build:add-hashbang": "echo '#! /usr/bin/env node\n' > dist/make_cuts",
+    "build:compile-imba": "imbac -p make_cuts.imba >> dist/make_cuts",
+    "build:copy-lua": "cp main.lua dist/",
+    "build": "npm exec npm-run-all build:*",
+    "release": "npm run build && npx gh-pages --branch release --dist dist/ --message $npm_package_version"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/familyfriendlymikey/mpv-cut.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Mikey Oz",
   "bugs": {
     "url": "https://github.com/familyfriendlymikey/mpv-cut/issues"
   },
-  "homepage": "https://github.com/familyfriendlymikey/mpv-cut#readme"
+  "homepage": "https://github.com/familyfriendlymikey/mpv-cut#readme",
+  "devDependencies": {},
+  "keywords": [
+    "video",
+    "cut",
+    "mpv",
+    "slice",
+    "editor"
+  ]
 }
