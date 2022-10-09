@@ -41,6 +41,13 @@ def parse_json data
 
 	succeeded.map! do |x| JSON.parse(x)
 
+def to_hms secs
+	[
+		Math.floor secs / 3600
+		Math.floor (secs % 3600) / 60
+		Math.round((secs % 3600 % 60) * 1000) / 1000
+	].filter(Boolean).join("-")
+
 def main
 
 	let argv = process.argv.slice(2)
@@ -71,7 +78,7 @@ def main
 		let { name: filename_noext, ext } = path.parse(filename)
 		let duration = parseFloat(end_time) - parseFloat(start_time)
 
-		cut_name = "{action}_{channel}_{filename_noext}_FROM_{start_time}_TO_{end_time}{ext}"
+		cut_name = "{action}_{channel}_{filename_noext}_FROM_{to_hms(start_time)}_TO_{to_hms(end_time)}{ext}"
 
 		let inpath = path.join(indir, filename)
 		let outpath = path.join(outdir, cut_name)
