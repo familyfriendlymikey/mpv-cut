@@ -237,3 +237,5 @@ mp.add_key_binding(KEY_CHANNEL_DEC, "channel_dec", channel_dec)
 mp.add_key_binding(KEY_CYCLE_ACTION, "cycle_action", cycle_action)
 mp.add_key_binding(KEY_TOGGLE_USE_GLOBAL_DIR, "toggle_use_global_dir", toggle_use_global_dir)
 mp.add_key_binding(KEY_TOGGLE_USE_CUT_LIST, "toggle_use_cut_list", toggle_use_cut_list)
+
+mp.register_event('file-loaded', bookmarks_load)
