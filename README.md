@@ -91,13 +91,12 @@ You can navigate between these chapters with the default mpv bindings,
 
 ### Channels
 
-The resulting cuts and bookmark files will
-be prefixed with one of ten channel names.
-This is to help you categorize cuts and bookmarks.
-You can press `-` to decrement the channel
-and `+` to increment the channel.
-If there is no configured name for a channel,
-the channel number will be used instead.
+The resulting cuts and bookmark files will be prefixed a channel
+number. This is to help you categorize cuts and bookmarks. You
+can press `-` to decrement the channel and `=` to increment the
+channel.
+
+You can configure a name for each channel as shown below.
 
 ## Config
 
@@ -120,6 +119,8 @@ ACTIONS = { "COPY", "ENCODE" }
 
 -- The list of channel names, you can choose whatever you want.
 CHANNEL_NAMES = {}
+CHANNEL_NAMES[1] = "FUNNY"
+CHANNEL_NAMES[2] = "COOL"
 
 -- The default channel
 CHANNEL = 1
