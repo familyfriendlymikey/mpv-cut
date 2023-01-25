@@ -1,6 +1,6 @@
 {
   "name": "mpv-cut",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Quickly cut videos both losslessly and re-encoded-ly.",
   "scripts": {
     "build:make-dist": "mkdir -p dist",
