@@ -45,7 +45,7 @@ def to_hms secs
 	[
 		Math.floor secs / 3600
 		Math.floor (secs % 3600) / 60
-		Math.round((secs % 3600 % 60) * 1000) / 1000
+		(Math.round((secs % 3600 % 60) * 1000) / 1000).toFixed(3)
 	].map(do String($1).padStart(2,0)).join("-")
 
 def main
