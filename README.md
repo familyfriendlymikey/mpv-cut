@@ -170,7 +170,7 @@ LUA and relying on `mpv`'s API. Most people on GitHub know how to code
 in some language, but not everyone wants to learn LUA and an API to
 cut their videos.
 
-I chose to wrote the default `make_cuts` script in Imba, an extremely
+I chose to write the default `make_cuts` script in Imba, an extremely
 underrated language that compiles to readable JavaScript. Python would
 have been a good candidate as well, but Python's VM takes
 significantly longer to start up than Node's which I didn't like.
