@@ -159,7 +159,21 @@ You may also want to change your key repeat delay and rate
 by tweaking `input-ar-delay` and `input-ar-rate`
 to your liking in `mpv.conf`.
 
-## Rationale And Other Helpful Information
+## FAQ
+
+### Why Do I Need Node?
+
+The actual `mpv-cut` extension acts as a sort of minimal interface to an
+arbitrary `make_cuts` binary. This way, users can extend the
+functionality using whatever language they want, without being tied to
+LUA and relying on `mpv`'s API. Most people on GitHub know how to code
+in some language, but not everyone wants to learn LUA and an API to
+cut their videos.
+
+I chose to wrote the default `make_cuts` script in Imba, an extremely
+underrated language that compiles to readable JavaScript. Python would
+have been a good candidate as well, but Python's VM takes
+significantly longer to start up than Node's which I didn't like.
 
 ### What Is The Point Of A Cut List?
 
