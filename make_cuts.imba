@@ -94,7 +94,7 @@ def main
 			"-pix_fmt", "yuv420p"
 		]
 
-		if action == "ENCODE"
+		if action is "ENCODE"
 			args.push(
 				"-crf", "16"
 				"-preset", "superfast"
@@ -102,6 +102,7 @@ def main
 		else
 			args.push(
 				"-c", "copy"
+				"-map", "0"
 				"-avoid_negative_ts", "make_zero"
 			)
 
