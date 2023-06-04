@@ -40,25 +40,25 @@ That's all you have to do, next time you run mpv the script will be automaticall
 
 ## Usage
 
-### Cutting A Video Losslessly
+### Cutting Actions
 
-- Press `c` to begin a cut.
+You do have three different possibilities to cut a video file. By pressing `a` you can cycle between those actions.
+The resulting cut(s) will be placed in the same directory as the source file.
 
-- Seek to a later time in the video.
+1.  COPY: lossless cut, rounds to keyframes
+    - Press `c` at the beginning and `c` again at the end of the desired cut.
+    - *In the background, the video gets cut generated instantly as a copy without being recoded.*
 
-- Press `c` again to make the cut.
+2.  ENCODE: re-encoded cut, exact
+    - Press `c` at the beginning and `c` again at the end of the desired cut.
+    - *In the background, the video gets cut generated instantly and re-encoded on-the-fly.*
 
-The resulting cut will be placed in the same directory as the source file.
-
-### Actions
-
-You can press `a` to cycle between three default actions:
-
-- Copy (lossless cut, rounds to keyframes).
-
-- Encode (re-encoded cut, exact).
-
-- List (simply add the timestamps for the cut to a `.list` file).
+3.  LIST: adding one or multiple pairs of time-stamps for cutting to a \`.list\` file
+    - Press `c` at the beginning and `c` again at the end of a desired cut.
+        - *In background, a `<VIDEOFILENAME>.list` file gets generated that contains the pairs of time-stamps.*
+    - Repeat for additional pairs of time-stamps for cutting.
+    - Press `0` for generating the copies from the list file generated above in background.
+        - By default, this is using the COPY action from above. You can switch to ENCODE action in the Lua file (see below).
 
 `mpv-cut` uses an extensible list of *actions* that you can modify in your
 `config.lua`. This makes it easy to change the `ffmpeg` command (or any command
@@ -72,6 +72,8 @@ Press `i` to append the current timestamp to a `.book` file. This
 automatically reloads the timestamps as chapters in mpv. You can navigate
 between these chapters with the default mpv bindings, `!` and `@`.
 
+This is not related to cutting videos.
+
 ### Channels
 
 The resulting cuts and bookmark files will be prefixed a channel number. This
@@ -79,10 +81,6 @@ is to help you categorize cuts and bookmarks. You can press `-` to decrement
 the channel and `=` to increment the channel.
 
 You can configure a name for each channel as shown below.
-
-### Making Cuts
-
-If you want to make all the cuts stored in a cut list, simply press `0`.
 
 ## Config
 
