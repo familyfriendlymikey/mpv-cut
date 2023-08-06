@@ -115,7 +115,16 @@ KEY_CHANNEL_INC = "="
 KEY_CHANNEL_DEC = "-"
 KEY_MAKE_CUTS = "0"
 
-pcall(require, "config")
+if pcall(require, "config") then
+    mp.msg.info("Loaded config module.")
+else
+    dot_config_file = os.getenv( "HOME" ) .. "/.mpv-cut.config.lua"
+    if pcall(dofile, dot_config_file) then
+        mp.msg.info("Loaded config from dotfile.")
+    else
+        mp.msg.info("Starting with default config.")
+    end
+end
 
 mp.msg.info("MPV-CUT LOADED.")
 
