@@ -167,6 +167,39 @@ DOWN seek -0.01 keyframes         # Seek by keyframes only.
 You may also want to change your key repeat delay and rate by tweaking
 `input-ar-delay` and `input-ar-rate` to your liking in `mpv.conf`.
 
+### Concatenation, Merging, Combining
+
+`mpv-cut` doesn't support concatenating clips, it's more reliable to do it with
+your shell instead. This function I wrote should handle most mpv-cut related
+situations.
+
+You can put the function in your `~/.zshrc`:
+
+```
+concat() {
+	local prefix="$1"
+	shift
+	ffmpeg -f concat -safe 0 -i <(printf 'file %q\n' "$PWD"/"$prefix"*) "$@"
+}
+```
+
+`concat` takes a filename prefix and ffmpeg output args. It will concatenate
+all files in the current directory starting with the supplied prefix. Example:
+
+```
+concat COPY output.mp4
+```
+
+Another example:
+
+```
+concat COPY -crf 10 -preset superfast output.mp4
+```
+
+Note that if you're using filenames with a lot of non english characters you
+might run into trouble, in which case you can see the FAQ section on how to
+concatenate videos in ffmpeg.
+
 ## FAQ
 
 ### What Is The Point Of A Cut List?
@@ -216,7 +249,7 @@ editors.
 - If the video's compression isn't efficient enough to upload to a messaging
 	platform or something, you may want to compress it more.
 
-### How Can I Merge (Concatenate) The Resulting Cuts Into One File?
+### How Do I Concatenate Videos Manually With ffmpeg?
 
 To concatenate videos with ffmpeg, you need to create a file with content like
 this:
