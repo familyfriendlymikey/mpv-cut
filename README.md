@@ -108,7 +108,7 @@ CHANNEL_NAMES[2] = "COOL"
 CHANNEL = 1
 
 -- The default action
-ACTION = ACTIONS.ENCODE
+ACTION = "ENCODE"
 
 -- The action to use when making cuts from a cut list
 MAKE_CUT = ACTIONS.COPY
