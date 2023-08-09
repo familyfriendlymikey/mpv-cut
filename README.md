@@ -86,9 +86,8 @@ If you want to make all the cuts stored in a cut list, simply press `0`.
 
 ## Config
 
-You can configure settings by creating a `config.lua` file in the same
-directory as `main.lua`. Alternatively, you can create a
-`.mpv-cut.config.lua` file in your home folder.
+You can configure settings by creating a `config.lua` file in
+`~/.config/mpv-cut` or in the same directory as `main.lua`.
 
 You can include or omit any of the following:
 
