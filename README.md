@@ -86,8 +86,8 @@ If you want to make all the cuts stored in a cut list, simply press `0`.
 
 ## Config
 
-You can configure settings by creating a `config.lua` file in the same
-directory as `main.lua`.
+You can configure settings by creating a `config.lua` file in
+`~/.config/mpv-cut` or in the same directory as `main.lua`.
 
 You can include or omit any of the following:
 
@@ -108,7 +108,7 @@ CHANNEL_NAMES[2] = "COOL"
 CHANNEL = 1
 
 -- The default action
-ACTION = ACTIONS.ENCODE
+ACTION = "ENCODE"
 
 -- The action to use when making cuts from a cut list
 MAKE_CUT = ACTIONS.COPY
