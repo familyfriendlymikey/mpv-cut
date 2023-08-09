@@ -1,3 +1,5 @@
+mp.msg.info("MPV-CUT LOADED")
+
 utils = require "mp.utils"
 
 local function print(s)
@@ -115,17 +117,14 @@ KEY_CHANNEL_INC = "="
 KEY_CHANNEL_DEC = "-"
 KEY_MAKE_CUTS = "0"
 
-config_file = mp.command_native({"expand-path", "~/.config/mpv-cut/config.lua"})
+home_config = mp.command_native({"expand-path", "~/.config/mpv-cut/config.lua"})
 if pcall(require, "config") then
-    mp.msg.info("Loaded default config.lua module.")
-elseif pcall(dofile, config_file) then
-    mp.msg.info("Loaded config file " .. config_file .. ".")
+    mp.msg.info("Loaded config file from script dir")
+elseif pcall(dofile, home_config) then
+    mp.msg.info("Loaded config file from " .. home_config)
 else
-    mp.msg.info("No config loaded.")
+    mp.msg.info("No config loaded")
 end
-
-
-mp.msg.info("MPV-CUT LOADED.")
 
 for i, v in ipairs(CHANNEL_NAMES) do
     CHANNEL_NAMES[i] = string.gsub(v, ":", "-")
