@@ -111,6 +111,7 @@ CHANNEL = 1
 CHANNEL_NAMES = {}
 
 KEY_CUT = "c"
+KEY_CANCEL_CUT = "C"
 KEY_CYCLE_ACTION = "a"
 KEY_BOOKMARK_ADD = "i"
 KEY_CHANNEL_INC = "="
@@ -187,30 +188,6 @@ local function cycle_action()
 	print_or_update_text_overlay("ACTION: " .. ACTION)
 end
 
-local function make_cuts()
-	print("MAKING CUTS")
-	if not MAKE_CUT then print("MAKE_CUT function not found.") return end
-	local inpath = mp.get_property("path") .. ".list"
-	local file = io.open(inpath, "r")
-	if not file then print("Error reading cut list") return end
-	for line in file:lines() do
-		if line ~= "" then
-			local cut = {}
-			for token in string.gmatch(line, "[^" .. ":" .. "]+") do
-				table.insert(cut, token)
-			end
-			local d = get_data()
-			d.channel = cut[1]
-			local t = get_times(tonumber(cut[2]), tonumber(cut[3]))
-			for k, v in pairs(t) do d[k] = v end
-			mp.msg.info("MAKE_CUT")
-			mp.msg.info(table_to_str(d))
-			MAKE_CUT(d)
-		end
-	end
-	io.close(file)
-end
-
 local function cut(start_time, end_time)
 	local d = get_data()
 	local t = get_times(start_time, end_time)
@@ -235,6 +212,12 @@ local function put_time()
 		print("INVALID")
 		START_TIME = nil
 	end
+end
+
+local function cancel_cut()
+	text_overlay_off()
+	START_TIME = nil
+	print("CANCELLED CUT")
 end
 
 local function get_bookmark_file_path()
@@ -289,10 +272,10 @@ local function channel_dec()
 end
 
 mp.add_key_binding(KEY_CUT, "cut", put_time)
+mp.add_key_binding(KEY_CANCEL_CUT, "cancel_cut", cancel_cut)
 mp.add_key_binding(KEY_BOOKMARK_ADD, "bookmark_add", bookmark_add)
 mp.add_key_binding(KEY_CHANNEL_INC, "channel_inc", channel_inc)
 mp.add_key_binding(KEY_CHANNEL_DEC, "channel_dec", channel_dec)
 mp.add_key_binding(KEY_CYCLE_ACTION, "cycle_action", cycle_action)
-mp.add_key_binding(KEY_MAKE_CUTS, "make_cuts", make_cuts)
 
 mp.register_event('file-loaded', bookmarks_load)

@@ -50,6 +50,8 @@ That's all you have to do, next time you run mpv the script will be automaticall
 
 The resulting cut will be placed in the same directory as the source file.
 
+- You can press `C` to cancel a cut.
+
 ### Actions
 
 You can press `a` to cycle between three default actions:
@@ -80,9 +82,37 @@ the channel and `=` to increment the channel.
 
 You can configure a name for each channel as shown below.
 
-### Making Cuts
+### Utils
 
-If you want to make all the cuts stored in a cut list, simply press `0`.
+This plugin includes a `utils` script that you can source in your shell's
+startup file. In my `~/.zshrc` I have this line:
+
+```
+source ~/.config/mpv/scripts/mpv-cut/utils
+```
+
+Now when you open new terminals, you'll have access to the functions inside of
+the `utils` script, which are explained in this section.
+
+#### Making Cuts
+
+The `make_cuts` function takes a `.list` file and ffmpeg output options except
+for an output filename. To make cuts without reencoding:
+
+```
+make_cuts some_video.mp4.list -c copy
+```
+
+#### Concatenate, Merge, Join Cuts
+
+The `concat` function takes a prefix and ffmpeg output options. Any file in the current directory
+starting with the prefix will be included. For example, to concatenate all
+files in the current directory whose filename starts with `CUT` without
+reencoding:
+
+```
+concat CUT -c copy output.mp4
+```
 
 ## Config
 
@@ -94,29 +124,41 @@ You can include or omit any of the following:
 ```lua
 -- Key config
 KEY_CUT = "c"
-KEY_CYCLE_ACTION = "a"
-KEY_BOOKMARK_ADD = "i"
-KEY_CHANNEL_INC = "="
-KEY_CHANNEL_DEC = "-"
-KEY_MAKE_CUTS = "0"
 
 -- The list of channel names, you can choose whatever you want.
 CHANNEL_NAMES[1] = "FUNNY"
-CHANNEL_NAMES[2] = "COOL"
 
 -- The default channel
 CHANNEL = 1
 
 -- The default action
-ACTION = "ENCODE"
-
--- The action to use when making cuts from a cut list
-MAKE_CUT = ACTIONS.COPY
+ACTION = "COPY"
 
 -- Delete a default action
 ACTIONS.LIST = nil
+```
 
--- Specify custom actions
+### Custom Actions
+
+In the config file you can also specify custom actions. Even if you don't know
+Lua, it should be pretty straightforward to take the following example and tune
+it to your needs. I think this is a very powerful abstraction. All of the
+default actions are implemented the same way you'd implement custom actions.
+
+You can essentially define an arbitrary callback to run whenever an action is
+invoked (the second time you press `c` in mpv). The callback function gets
+passed a table with the following properties:
+
+```
+inpath, indir, infile, infile_noext, ext
+channel
+start_time, end_time, duration
+start_time_hms, end_time_hms, duration_hms
+```
+
+Here is an example overwriting the default `ENCODE` action:
+
+```lua
 ACTIONS.ENCODE = function(d)
 	local args = {
 		"ffmpeg",
@@ -136,12 +178,6 @@ ACTIONS.ENCODE = function(d)
 		playback_only = false,
 	}, function() print("Done") end)
 end
-
--- The table that gets passed to an action will have the following properties:
--- inpath, indir, infile, infile_noext, ext
--- channel
--- start_time, end_time, duration
--- start_time_hms, end_time_hms, duration_hms
 ```
 
 ## Optimized MPV Input Config
@@ -152,16 +188,18 @@ quickly editing videos.
 ```
 RIGHT seek 2 exact
 LEFT seek -2 exact
+UP seek 2 keyframes
+DOWN seek -2 keyframes
 
 ] add speed 0.5
 [ add speed -0.5
 } add speed 0.25
 { add speed -0.25
+\ set speed 1
 
-SPACE cycle pause; set speed 1    # Reset speed whenever pausing.
-BS script-binding osc/visibility  # Make progress bar stay visible.
-UP seek 0.01 keyframes            # Seek by keyframes only.
-DOWN seek -0.01 keyframes         # Seek by keyframes only.
+BS script-binding osc/visibility
+
+Alt+= add video-zoom 0.1
 ```
 
 You may also want to change your key repeat delay and rate by tweaking
@@ -248,53 +286,6 @@ editors.
 
 - If the video's compression isn't efficient enough to upload to a messaging
 	platform or something, you may want to compress it more.
-
-### How Do I Concatenate Videos Manually With ffmpeg?
-
-To concatenate videos with ffmpeg, you need to create a file with content like
-this:
-
-```
-file cut_1.mp4
-file cut_2.mp4
-file cut_3.mp4
-file cut_4.mp4
-```
-
-You can name the file whatever you want, here I named it `concat.txt`.
-
-Then run the command:
-
-```
-ffmpeg -f concat -safe 0 -i concat.txt -c copy out.mp4
-```
-
-That's annoying though, so you can skip manually creating the file by using
-bash. This command will concatenate all files in the current directory that
-begin with "COPY_":
-
-```
-ffmpeg -f concat -safe 0 -i <(printf 'file %q\n' "$PWD"/COPY_*) -c copy lol.mp4
-```
-
-- You need to escape apostrophes which is why we are using `printf %q
-	"$string"`.
-
-- Instead of actually creating a file we just use process substitution
-	`<(whatever)` to create a temporary file, which is why we need the `$PWD` in
-	there for the absolute path.
-
-You can also do it in vim, among other things.
-
-```
-ls | vim -
-:%s/'/\\'/g
-:%norm Ifile 
-:wq concat.txt
-```
-
-This substitution might not cover all cases, but whatever, if you're
-concatenating a file named `[{}1;']["!.mp4` you can figure it out yourself.
 
 ### Can I Make Seeking And Reverse Playback Faster?
 

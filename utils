@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+
+concat() {
+	local prefix="$1"
+	shift
+	ffmpeg -f concat -safe 0 -i <(printf 'file %q\n' "$PWD"/"$prefix"*) "$@"
+}
+
+make_cuts() {
+	local list="$1"
+	local vid="${list%.*}"
+	local ext="${vid##*.}"
+	local vid_noext="${vid%.*}"
+	shift
+	while IFS=: read -r channel_name start_ts end_ts; do
+		if [[ -z "$end_ts" ]]; then continue; fi
+		ffmpeg -nostdin -ss "$start_ts" -to "$end_ts" -i "$vid" "$@" "CUT_${channel_name}_${vid}_${start_ts}_${end_ts}.${ext}"
+	done < "$list"
+}
