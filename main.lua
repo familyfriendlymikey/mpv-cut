@@ -54,9 +54,9 @@ ACTIONS.COPY = function(d)
 		"-ss", d.start_time,
 		"-t", d.duration,
 		"-i", d.inpath,
-		"-pix_fmt", "yuv420p",
 		"-c", "copy",
 		"-map", "0",
+		"-dn",
 		"-avoid_negative_ts", "make_zero",
 		utils.join_path(d.indir, "COPY_" .. d.channel .. "_" .. d.infile_noext .. "_FROM_" .. d.start_time_hms .. "_TO_" .. d.end_time_hms .. d.ext)
 	}
