@@ -50,7 +50,7 @@ That's all you have to do, next time you run mpv the script will be automaticall
 
 The resulting cut will be placed in the same directory as the source file.
 
-- You can press `C` to cancel a cut.
+You can press `C` to cancel a cut.
 
 ### Actions
 
@@ -62,11 +62,7 @@ You can press `a` to cycle between three default actions:
 
 - List (simply add the timestamps for the cut to a `.list` file).
 
-`mpv-cut` uses an extensible list of *actions* that you can modify in your
-`config.lua`. This makes it easy to change the `ffmpeg` command (or any command
-for that matter) to suit your specific situation. It should be possible to
-create custom actions with limited coding knowledge. More details in
-[config](#config).
+More details in [Custom Actions](#custom-actions).
 
 ### Bookmarking
 
@@ -80,7 +76,7 @@ The resulting cuts and bookmark files will be prefixed a channel number. This
 is to help you categorize cuts and bookmarks. You can press `-` to decrement
 the channel and `=` to increment the channel.
 
-You can configure a name for each channel as shown below.
+You can configure a name for each channel as shown in [config](#config).
 
 ### Utils
 
@@ -92,7 +88,7 @@ source ~/.config/mpv/scripts/mpv-cut/utils
 ```
 
 Now when you open new terminals, you'll have access to the functions inside of
-the `utils` script, which are explained in this section.
+the `utils` script, which are used as follows:
 
 #### Making Cuts
 
@@ -103,7 +99,7 @@ for an output filename. To make cuts without reencoding:
 make_cuts some_video.mp4.list -c copy
 ```
 
-#### Concatenate, Merge, Join Cuts
+#### Concatenate, Merge, Combine, Join Cuts
 
 The `concat` function takes a prefix and ffmpeg output options. Any file in the current directory
 starting with the prefix will be included. For example, to concatenate all
@@ -124,6 +120,12 @@ You can include or omit any of the following:
 ```lua
 -- Key config
 KEY_CUT = "c"
+KEY_CANCEL_CUT = "C"
+KEY_CYCLE_ACTION = "a"
+KEY_BOOKMARK_ADD = "i"
+KEY_CHANNEL_INC = "="
+KEY_CHANNEL_DEC = "-"
+KEY_MAKE_CUTS = "0"
 
 -- The list of channel names, you can choose whatever you want.
 CHANNEL_NAMES[1] = "FUNNY"
@@ -205,58 +207,27 @@ Alt+= add video-zoom 0.1
 You may also want to change your key repeat delay and rate by tweaking
 `input-ar-delay` and `input-ar-rate` to your liking in `mpv.conf`.
 
-### Concatenation, Merging, Combining
-
-`mpv-cut` doesn't support concatenating clips, it's more reliable to do it with
-your shell instead. This function I wrote should handle most mpv-cut related
-situations.
-
-You can put the function in your `~/.zshrc`:
-
-```
-concat() {
-	local prefix="$1"
-	shift
-	ffmpeg -f concat -safe 0 -i <(printf 'file %q\n' "$PWD"/"$prefix"*) "$@"
-}
-```
-
-`concat` takes a filename prefix and ffmpeg output args. It will concatenate
-all files in the current directory starting with the supplied prefix. Example:
-
-```
-concat COPY output.mp4
-```
-
-Another example:
-
-```
-concat COPY -crf 10 -preset superfast output.mp4
-```
-
-Note that if you're using filenames with a lot of non english characters you
-might run into trouble, in which case you can see the FAQ section on how to
-concatenate videos in ffmpeg.
-
 ## FAQ
 
 ### What Is The Point Of A Cut List?
 
 There are plenty of reasons, but to give some examples:
 
-- Video seems to be pretty complex, at least to me. One video file may cause
-	certain issues, and another may not, which makes writing an ffmpeg command
-	that accounts for all scenarios difficult. If you spend a ton of time making
-	many cuts in a long movie only to find that the colors look off because of
-	some 10-bit h265 dolby mega surround whatever the fuck, with a cut list it's
-	trivial to edit the ffmpeg command and re-make the cuts.
+- In my opinion, video is extremely complex and tools around video can be
+	unreliable. One video file may cause certain issues, and another may not,
+	which makes writing an ffmpeg command that accounts for all scenarios
+	difficult. If you spend a ton of time making many cuts in a long movie only
+	to find that the colors look off because of some 10-bit h265 dolby mega
+	surround whatever the fuck, with a cut list it's trivial to edit the ffmpeg
+	command and re-make the cuts.
 
 - Maybe you forget that the foreign language video you're cutting has softsubs
 	rather than hardsubs, and you make a bunch of encode cuts resulting in cuts
 	that have no subtitles.
 
-- You delete the source video for storage reasons, but still want to have a
-	back up of the cut timestamps in the event you need to remake the cuts.
+- You might move the source video to somewhere else for storage but still want
+	to have a back up of the cut timestamps in the event you need to remake the
+	cuts from source quality.
 
 ### Why Would I Bookmark Instead Of Cutting?
 
@@ -265,15 +236,6 @@ want to compile funny moments to post online or send to your friends. It would
 ruin your viewing experience to wait for a funny moment to be over in order to
 make a cut. Instead, you can quickly make a bookmark whenever you laugh, and
 once you're done watching you can go back and make actual cuts.
-
-### Why Is Lossless Cutting Called "Copy"?
-
-This refers to ffmpeg's `-copy` flag which copies the input stream instead of
-re-encoding it, meaning that the cut will process extremely quickly and the
-resulting video will retain 100% of the original quality. The main drawback is
-that the cut may have some extra video at the beginning and end, and as a
-result of that there may be some slightly wonky behavior with video players and
-editors.
 
 ### Why Would I Re-Encode A Video?
 
@@ -322,3 +284,12 @@ extremely quickly and play backwards just fine.
 Once you are done generating the cut list, simply open the `cut_list.txt` file,
 substitute the proxy file name for the original file name, and run `make_cuts`
 on it.
+
+### Why Is Lossless Cutting Called "Copy"?
+
+This refers to ffmpeg's `-copy` flag which copies the input stream instead of
+re-encoding it, meaning that the cut will process extremely quickly and the
+resulting video will retain 100% of the original quality. The main drawback is
+that the cut may have some extra video at the beginning and end, and as a
+result of that there may be some slightly wonky behavior with video players and
+editors.
