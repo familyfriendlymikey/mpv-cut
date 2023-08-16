@@ -104,8 +104,6 @@ end
 
 ACTION = "COPY"
 
-MAKE_CUT = ACTIONS.COPY
-
 CHANNEL = 1
 
 CHANNEL_NAMES = {}
@@ -116,7 +114,6 @@ KEY_CYCLE_ACTION = "a"
 KEY_BOOKMARK_ADD = "i"
 KEY_CHANNEL_INC = "="
 KEY_CHANNEL_DEC = "-"
-KEY_MAKE_CUTS = "0"
 
 home_config = mp.command_native({"expand-path", "~/.config/mpv-cut/config.lua"})
 if pcall(require, "config") then

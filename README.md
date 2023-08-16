@@ -125,7 +125,6 @@ KEY_CYCLE_ACTION = "a"
 KEY_BOOKMARK_ADD = "i"
 KEY_CHANNEL_INC = "="
 KEY_CHANNEL_DEC = "-"
-KEY_MAKE_CUTS = "0"
 
 -- The list of channel names, you can choose whatever you want.
 CHANNEL_NAMES[1] = "FUNNY"
