@@ -12,8 +12,20 @@ make_cuts() {
 	local ext="${vid##*.}"
 	local vid_noext="${vid%.*}"
 	shift
-	while IFS=: read -r channel_name start_ts end_ts; do
+	while IFS=: read -r channel_name start_ts end_ts || [[ -n "$channel_name" ]]; do
 		if [[ -z "$end_ts" ]]; then continue; fi
-		ffmpeg -nostdin -ss "$start_ts" -to "$end_ts" -i "$vid" "$@" "CUT_${channel_name}_${vid}_${start_ts}_${end_ts}.${ext}"
+		local start_ts_hms="$(_mpv_cut_to_hms "$start_ts")"
+		local end_ts_hms="$(_mpv_cut_to_hms "$end_ts")"
+		echo $channel_name $start_ts $end_ts
+		ffmpeg -nostdin -ss "$start_ts" -to "$end_ts" -i "$vid" "$@" "CUT_${channel_name}_${vid}_${start_ts_hms}_${end_ts_hms}.${ext}"
 	done < "$list"
+}
+
+_mpv_cut_to_hms() {
+	local total_seconds="$1"
+	local hours=$(( ${total_seconds%.*} / 3600 ))
+	local minutes=$(( (${total_seconds%.*} % 3600) / 60 ))
+	local seconds=$(( ${total_seconds%.*} % 60 ))
+	local milliseconds=$(printf "%.0f" $(echo "($total_seconds - ${total_seconds%.*}) * 1000" | bc))
+	printf "%02d-%02d-%02d-%03d\n" $hours $minutes $seconds $milliseconds
 }
