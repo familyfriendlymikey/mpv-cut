@@ -1,5 +1,15 @@
 #! /usr/bin/env bash
 
+mcc() {
+	local list=( *.list )
+	if [[ ${#list[@]} -ne 1 ]]; then
+		echo "Number of .list files in cwd must be exactly 1, exiting."
+		return 1
+	fi
+	make_cuts "$list" "$@"
+	concat CUT -c copy "CONCAT_${list%.*}"
+}
+
 concat() {
 	local prefix="$1"
 	shift
@@ -11,13 +21,15 @@ make_cuts() {
 	local vid="${list%.*}"
 	local ext="${vid##*.}"
 	local vid_noext="${vid%.*}"
+	local start_ts_hms
+	local end_ts_hms
 	shift
 	while IFS=: read -r channel_name start_ts end_ts || [[ -n "$channel_name" ]]; do
 		if [[ -z "$end_ts" ]]; then continue; fi
-		local start_ts_hms="$(_mpv_cut_to_hms "$start_ts")"
-		local end_ts_hms="$(_mpv_cut_to_hms "$end_ts")"
-		echo $channel_name $start_ts $end_ts
-		ffmpeg -nostdin -ss "$start_ts" -to "$end_ts" -i "$vid" "$@" "CUT_${channel_name}_${vid}_${start_ts_hms}_${end_ts_hms}.${ext}"
+		start_ts_hms="$(_mpv_cut_to_hms "$start_ts")"
+		end_ts_hms="$(_mpv_cut_to_hms "$end_ts")"
+		echo "$channel_name" "$start_ts" "$end_ts"
+		ffmpeg -nostdin -ss "$start_ts" -to "$end_ts" -i "$vid" "$@" "CUT_${channel_name}_${vid_noext}_${start_ts_hms}_${end_ts_hms}.${ext}"
 	done < "$list"
 }
 
@@ -26,6 +38,7 @@ _mpv_cut_to_hms() {
 	local hours=$(( ${total_seconds%.*} / 3600 ))
 	local minutes=$(( (${total_seconds%.*} % 3600) / 60 ))
 	local seconds=$(( ${total_seconds%.*} % 60 ))
-	local milliseconds=$(printf "%.0f" $(echo "($total_seconds - ${total_seconds%.*}) * 1000" | bc))
-	printf "%02d-%02d-%02d-%03d\n" $hours $minutes $seconds $milliseconds
+	local ms
+	ms=$(printf "%.0f" "$(echo "($total_seconds - ${total_seconds%.*}) * 1000" | bc)")
+	printf "%02d-%02d-%02d-%03d\n" $hours $minutes $seconds "$ms"
 }
