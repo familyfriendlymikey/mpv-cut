@@ -19,6 +19,21 @@ All directly in the fantastic media player [mpv](https://mpv.io/installation/).
 
 Besides mpv, you must have `ffmpeg` in your PATH.
 
+If you're launching mpv from Finder/Explorer, FFmpeg must be in your actual
+system environment's PATH as opposed to your shell environment. This means
+that changes to `~/.profile` or the like will not suffice. As such, on my
+newest Macbook, after installing ffmpeg with homebrew I had to run the
+following:
+
+```
+sudo ln -s /opt/homebrew/bin/ffmpeg /usr/local/bin/ffmpeg
+```
+
+## Tips
+
+To debug when launching from Finder/Explorer, use `` ` `` to display a terminal
+with output.
+
 ## Installation
 
 #### Linux/MacOS

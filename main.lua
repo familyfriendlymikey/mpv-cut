@@ -1,3 +1,7 @@
+-- NOTE TO FUTURE SELF:
+-- To view debug logs when launching through Finder,
+-- use the ` key in mpv instead of viewing ~/Library/Logs/mpv.log.
+
 mp.msg.info("MPV-CUT LOADED")
 
 utils = require "mp.utils"
@@ -18,6 +22,14 @@ local function table_to_str(o)
 	else
 		return tostring(o)
 	end
+end
+
+local result = mp.command_native({ name = "subprocess", args = {"ffmpeg"}, playback_only = false, capture_stdout = true, capture_stderr = true })
+mp.msg.info("Your PATH: " .. os.getenv('PATH'))
+if result.status ~= 1 then
+	mp.osd_message("FFmpeg failed to run, please press ` for debug info", 5)
+	mp.msg.error("FFmpeg failed to run:\n" .. table_to_str(result))
+	mp.msg.error("`which ffmpeg` output:\n" .. table_to_str(mp.command_native({ name = "subprocess", args = {"which", "ffmpeg"}, playback_only = false, capture_stdout = true, capture_stderr = true })))
 end
 
 local function to_hms(seconds)
