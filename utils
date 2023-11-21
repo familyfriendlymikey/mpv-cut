@@ -11,26 +11,39 @@ mcc() {
 }
 
 concat() {
+	if [[ $# -eq 0 ]]; then
+		echo "You must provide a prefix"
+		return
+	fi
+
 	local prefix="$1"
 	shift
-	ffmpeg -f concat -safe 0 -i <(printf 'file %q\n' "$PWD"/"$prefix"*) "$@"
+	ffmpeg -y -f concat -safe 0 -i <(printf 'file %q\n' "$PWD"/"$prefix"*) "$@"
 }
 
 make_cuts() {
+	if [[ $1 != *".list" ]]; then
+		echo "You must supply a single .list file as argument"
+		return
+	fi
+
 	local list="$1"
 	local vid="${list%.*}"
 	local ext="${vid##*.}"
 	local vid_noext="${vid%.*}"
 	local start_ts_hms
 	local end_ts_hms
+	local ffmpeg_cmd=("ffmpeg" "-y" "-i" "$vid")
 	shift
+
 	while IFS=: read -r channel_name start_ts end_ts || [[ -n "$channel_name" ]]; do
 		if [[ -z "$end_ts" ]]; then continue; fi
 		start_ts_hms="$(_mpv_cut_to_hms "$start_ts")"
 		end_ts_hms="$(_mpv_cut_to_hms "$end_ts")"
-		echo "$channel_name" "$start_ts" "$end_ts"
-		ffmpeg -nostdin -ss "$start_ts" -to "$end_ts" -i "$vid" "$@" "CUT_${channel_name}_${vid_noext}_${start_ts_hms}_${end_ts_hms}.${ext}"
+		ffmpeg_cmd+=("-ss" "$start_ts" "-to" "$end_ts" "$@" "CUT_${channel_name}_${vid_noext}_${start_ts_hms}_${end_ts_hms}.${ext}")
 	done < "$list"
+
+	"${ffmpeg_cmd[@]}"
 }
 
 _mpv_cut_to_hms() {
